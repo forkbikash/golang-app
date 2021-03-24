@@ -22,6 +22,12 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexGetHandler).Methods("GET")
 	r.HandleFunc("/", indexPostHandler).Methods("POST")
+	
+	// instantiating file server object
+	fs := http.FileServer(http.Dir("./static/"))
+
+	// path with prefix /static/ should be served by file server
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	// registering the gorilla/mux router as default handler
 	http.Handle("/", r)
