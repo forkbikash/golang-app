@@ -6,6 +6,14 @@
 
     <body>
         <h1>comments</h1>
+
+        <form method="POST">
+            <textarea name="comment"></textarea>
+            <div>
+                <button type="submit">post comment</button>
+            </div>
+        </form>
+
         {{range .}}
         <div>{{.}}</div>
         {{end}}
