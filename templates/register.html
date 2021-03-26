@@ -5,7 +5,9 @@
     </head>
 
     <body>
-
+        {{if .}}
+        <div class="error">{{ . }}</div>
+        {{end}}
         <form method="POST">
             <div> username: <input name="username"> </div>
             <div> password: <input name="password"> </div>

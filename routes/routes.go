@@ -15,6 +15,7 @@ func NewRouter() *mux.Router {
 	r.HandleFunc("/", middleware.AuthRequired(indexPostHandler)).Methods("POST")
 	r.HandleFunc("/login", loginGetHandler).Methods("GET")
 	r.HandleFunc("/login", loginPostHandler).Methods("POST")
+	r.HandleFunc("/logout", logoutGetHandler).Methods("GET")
 	r.HandleFunc("/register", registerGetHandler).Methods("GET")
 	r.HandleFunc("/register", registerPostHandler).Methods("POST")
 	
@@ -29,6 +30,14 @@ func NewRouter() *mux.Router {
 }
 
 func userGetHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := sessions.Store.Get(r, "session")
+	untypedUserId := session.Values["user_id"]
+	currentUserId, ok := untypedUserId.(int64)
+	if !ok {
+		utils.InternalServerError(w)
+		return
+	}
+
 	vars := mux.Vars(r)
 	username := vars["username"]
 	user, err := models.GetUserByUsername(username)
@@ -52,9 +61,11 @@ func userGetHandler(w http.ResponseWriter, r *http.Request) {
 	utils.ExecuteTemplate(w, "index.html", struct {
 		Title string
 		Updates []*models.Update
+		DisplayForm bool
 	}{
 		Title: username,
 		Updates: updates,
+		DisplayForm: currentUserId == userId,
 	})
 }
 
@@ -71,9 +82,11 @@ func indexGetHandler(w http.ResponseWriter, r *http.Request) {
 	utils.ExecuteTemplate(w, "index.html", struct {
 		Title string
 		Updates []*models.Update
+		DisplayForm bool
 	}{
 		Title: "all updates",
 		Updates: updates,
+		DisplayForm: true,
 	})
 }
 
@@ -127,6 +140,13 @@ func loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func logoutGetHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := sessions.Store.Get(r, "session")
+	delete(session.Values, "user_id")
+	session.Save(r, w)
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
 func registerGetHandler(w http.ResponseWriter, r *http.Request) {
 	utils.ExecuteTemplate(w, "register.html", nil)
 }
@@ -136,7 +156,10 @@ func registerPostHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.PostForm.Get("username")
 	password := r.PostForm.Get("password")
 	err := models.RegisterUser(username, password)
-	if err != nil {
+	if err == models.ErrUsernameTaken {
+		utils.ExecuteTemplate(w, "register.html", "username taken")
+		return
+	}else if err != nil {
 		utils.InternalServerError(w)
 		return
 	}

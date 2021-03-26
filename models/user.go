@@ -11,6 +11,7 @@ import (
 var(
 	ErrUserNotFound = errors.New("user not found")
 	ErrInvalidLogin = errors.New("invalid login")
+	ErrUsernameTaken = errors.New("username taken")
 )
 
 type User struct {
@@ -18,7 +19,15 @@ type User struct {
 	// key string // key points to hashmap(with all the user attributes) in redis
 }
 
+// two users will still be able to register with the same usernames if
+// they both try to register at the same time and NewUser func gets called
+// at the same time for both of them. so modify NewUser to use some kind
+// of locking like using mutex
 func NewUser(username string, hash []byte) (*User, error) {
+	exists, err := client.HExists("user:by-username", username).Result()
+	if exists {
+		return nil, ErrUsernameTaken
+	}
 	id, err := client.Incr("user:next-id").Result()
 	if err != nil {
 		return nil, err
