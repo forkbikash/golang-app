@@ -6,23 +6,30 @@
     </head>
 
     <body>
-        <h1>{{ .Title }}</h1>
-        {{ if .DisplayForm }}
-        <form action="/" method="POST">
-            <textarea name="update"></textarea>
-            <div>
-                <button type="submit">post update</button>
+        <nav>
+            <a href="/logout">logout</a>
+        </nav>
+        <main>
+            <h1>{{ .Title }}</h1>
+            {{ if .DisplayForm }}
+            <div id="update-form">
+                <form action="/" method="POST">
+                    <textarea name="update"></textarea>
+                    <div>
+                        <button type="submit">post update</button>
+                    </div>
+                </form>
             </div>
-        </form>
-        {{ end }}
-        {{ range .Updates }}
-        <div>
-            <div>
-                <strong>{{ .GetUser.GetUsername }} wrote:</strong>
+            {{ end }}
+            {{ range .Updates }}
+            <div class="update">
+                <div>
+                    <strong><a href="/{{ .GetUser.GetUsername }}">{{ .GetUser.GetUsername }}</a> wrote:</strong>
+                </div>
+                <div>{{ .GetBody }}</div>
             </div>
-            <div>{{ .GetBody }}</div>
-        </div>
-        {{end}}
+            {{end}}
+        </main>
     </body>
 
 </html>
