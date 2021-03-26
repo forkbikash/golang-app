@@ -1,12 +1,12 @@
 <html>
 
     <head>
-        <title>updates</title>
+        <title>{{ .Title }}</title>
         <link rel="stylesheet" type="text/css" href="/static/index.css">
     </head>
 
     <body>
-        <h1>updates</h1>
+        <h1>{{ .Title }}</h1>
 
         <form method="POST">
             <textarea name="update"></textarea>
@@ -14,8 +14,7 @@
                 <button type="submit">post update</button>
             </div>
         </form>
-
-        {{range .}}
+        {{ range .Updates }}
         <div>
             <div>
                 <strong>{{ .GetUser.GetUsername }} wrote:</strong>
